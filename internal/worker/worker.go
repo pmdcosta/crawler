@@ -33,7 +33,7 @@ type Worker struct {
 	// gracefully shutdown worker
 	ctx    context.Context
 	cancel context.CancelFunc
-	stopCn chan struct{}
+	stopCh chan struct{}
 }
 
 // Backend defines the backend client to make http requests
@@ -97,7 +97,7 @@ func (w *Worker) Start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	w.ctx = ctx
 	w.cancel = cancel
-	w.stopCn = make(chan struct{})
+	w.stopCh = make(chan struct{})
 	go w.run()
 	return nil
 }
@@ -109,10 +109,11 @@ func (w Worker) Stop() {
 	}
 	// stop the worker
 	w.cancel()
+	w.logger.Info().Msg("stopping worker")
 
 	// wait for the worker to be gracefully stopped
 	select {
-	case <-w.stopCn:
+	case <-w.stopCh:
 		return
 	case <-time.After(10 * time.Second):
 		return
@@ -126,7 +127,7 @@ func (w *Worker) run() {
 		select {
 		case <-w.ctx.Done():
 			w.logger.Debug().Msg("worker stopping")
-			w.stopCn <- struct{}{}
+			w.stopCh <- struct{}{}
 			return
 		case task, ok := <-w.taskQueue:
 			if ok {
@@ -143,13 +144,15 @@ func (w *Worker) run() {
 
 // run is the main execution loop of the worker
 func (w *Worker) processTask(task *crawler.Task) (crawler.TaskResult, error) {
-	w.logger.Debug().Str("url", task.URL.String()).Int("try", task.Tries).Msg("processing task")
+	w.logger.Info().Str("url", task.URL.String()).Int("try", task.Tries).Msg("processing task")
+
+	// increment try counter
+	task.Tries += 1
 
 	// executing pre-processors
 	for _, f := range w.preProcessors {
 		ignore, err := f(task)
 		if err != nil {
-			task.Tries += 1
 			return crawler.TaskResult{Task: *task, Children: nil, Error: &err}, err
 		}
 		if ignore {
