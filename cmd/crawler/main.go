@@ -23,9 +23,9 @@ func main() {
 	// handle flags
 	var (
 		debug           = flag.Bool("debug", false, "increase verbosity")
-		host            = flag.String("host", "https://monzo.com", "host to crawl")
+		host            = flag.String("host", "https://google.com", "host to crawl")
 		retries         = flag.Int("retries", 3, "set retry attempts")
-		depth           = flag.Int("depth", 2, "set max depth")
+		depth           = flag.Int("depth", 1, "set max depth")
 		sameHost        = flag.Bool("same-host", true, "only crawl the same host")
 		filterSubDomain = flag.String("filter-subdomain", "", "only crawl subdomain")
 		filterHost      = flag.String("filter-host", "", "only crawl host")
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// initiate the crawler
-	o := orchestrator.New(&l, 1000, options...)
+	o := orchestrator.New(&l, 10000000, options...)
 	var workers []*worker.Worker
 	for i := 0; i < *parallel; i++ {
 		w := worker.New(&l, o.TaskQueue, o.DoneQueue, o.ErrorQueue, backend.New(&l), scraper.ScrapePage)
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	// start crawling
-	_ = o.Start("https://monzo.com")
+	_ = o.Start(*host)
 
 	// wait for signal or end
 	select {
