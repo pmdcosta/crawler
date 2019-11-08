@@ -65,6 +65,7 @@ func SetHTTPRequest(request *http.Request) Option {
 
 // Do executes the http request
 func (b *Http) Do(u *url.URL) ([]byte, error) {
+	start := time.Now()
 	b.logger.Debug().Str("url", u.String()).Msg("executing http request")
 
 	// whether to use a custom request
@@ -85,7 +86,7 @@ func (b *Http) Do(u *url.URL) ([]byte, error) {
 	if res.Request != nil {
 		*request = *res.Request
 	}
-	b.logger.Debug().Str("url", request.URL.String()).Str("status", res.Status).Int("code", res.StatusCode).Msg("completed http request")
+	b.logger.Debug().Str("url", request.URL.String()).Str("status", res.Status).Int("code", res.StatusCode).Dur("elapsed", time.Since(start)).Msg("completed http request")
 
 	// limit body size
 	var bodyReader io.Reader = res.Body

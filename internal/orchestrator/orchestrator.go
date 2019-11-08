@@ -2,12 +2,14 @@ package orchestrator
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/pmdcosta/crawler/internal/crawler"
+
 	"github.com/rs/zerolog"
 )
 
@@ -150,19 +152,18 @@ func (o Orchestrator) Stop() {
 }
 
 // Done waits until the crawling is finished
-func (o Orchestrator) Done() {
-	<-o.doneCh
-	return
+func (o Orchestrator) Done() <-chan struct{} {
+	return o.doneCh
 }
 
 // run is the main execution loop of the worker
 func (o *Orchestrator) run() {
-	o.logger.Debug().Msg("orchestrator started")
+	o.logger.Info().Msg("orchestrator started...")
 	for {
 		o.checkFinished()
 		select {
 		case <-o.ctx.Done():
-			o.logger.Debug().Msg("orchestrator stopping")
+			o.logger.Info().Msg("orchestrator stopping...")
 			o.stopCh <- struct{}{}
 			return
 		case task, ok := <-o.DoneQueue:
@@ -264,4 +265,19 @@ func (o *Orchestrator) checkFinished() {
 	if o.inProcess == 0 {
 		o.doneCh <- struct{}{}
 	}
+}
+
+// GetHits returns the crawled pages
+func (o *Orchestrator) GetHits() map[string]map[string]int {
+	var result = make(map[string]map[string]int)
+	for _, p := range o.Processed {
+		result[p.URL.String()] = p.Children
+	}
+	return result
+}
+
+// GetJson returns a json formatted version of the crawled pages
+func (o *Orchestrator) GetJson() string {
+	j, _ := json.Marshal(o.GetHits())
+	return string(j)
 }
