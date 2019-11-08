@@ -46,7 +46,7 @@ func TestOrchestrator_ok(t *testing.T) {
 	}
 	o.DoneQueue <- crawler.TaskResult{Task: task1, Children: map[string]int{"http://google.com": 1}}
 
-	o.Done()
+	<-o.Done()
 	expected := map[string]crawler.TaskResult{
 		"http://google.com/1": {
 			Task: crawler.Task{
@@ -106,7 +106,7 @@ func testOrchestrator_exactFilter_ok(t *testing.T) {
 	}
 	o.DoneQueue <- crawler.TaskResult{Task: task1, Children: map[string]int{"http://docs.google.com": 1}}
 
-	o.Done()
+	<-o.Done()
 }
 
 func testOrchestrator_exactFilter_pass(t *testing.T) {
@@ -148,7 +148,7 @@ func testOrchestrator_exactFilter_pass(t *testing.T) {
 		require.FailNow(t, "task not received")
 	}
 	o.DoneQueue <- crawler.TaskResult{Task: task2, Children: map[string]int{"http://fail.google.com/1": 1}}
-	o.Done()
+	<-o.Done()
 }
 
 func TestOrchestrator_subFilter(t *testing.T) {
@@ -190,7 +190,7 @@ func TestOrchestrator_subFilter(t *testing.T) {
 		require.FailNow(t, "task not received")
 	}
 	o.DoneQueue <- crawler.TaskResult{Task: task2, Children: map[string]int{"http://google.fail.com/1": 1}}
-	o.Done()
+	<-o.Done()
 }
 
 func TestOrchestrator_depth(t *testing.T) {
@@ -222,7 +222,7 @@ func TestOrchestrator_depth(t *testing.T) {
 	}
 	o.DoneQueue <- crawler.TaskResult{Task: task1, Children: map[string]int{"http://docs.google.com": 1}}
 
-	o.Done()
+	<-o.Done()
 }
 
 func TestOrchestrator_failed(t *testing.T) {
@@ -265,7 +265,7 @@ func TestOrchestrator_failed(t *testing.T) {
 	}
 	o.ErrorQueue <- crawler.TaskResult{Task: task2, Children: nil, Error: &err}
 
-	o.Done()
+	<-o.Done()
 	expected := map[string]crawler.TaskResult{
 		"http://google.com": {
 			Task: crawler.Task{

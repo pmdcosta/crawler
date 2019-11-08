@@ -122,11 +122,11 @@ func (w Worker) Stop() {
 
 // run is the main execution loop of the worker
 func (w *Worker) run() {
-	w.logger.Debug().Msg("worker started")
+	w.logger.Info().Msg("worker starting...")
 	for {
 		select {
 		case <-w.ctx.Done():
-			w.logger.Debug().Msg("worker stopping")
+			w.logger.Debug().Msg("worker stopping...")
 			w.stopCh <- struct{}{}
 			return
 		case task, ok := <-w.taskQueue:
