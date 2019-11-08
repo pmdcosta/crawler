@@ -44,7 +44,7 @@ func newTestWorker(t *testing.T, scraper worker.Scraper, opts ...worker.Option) 
 
 func TestWorker_ok(t *testing.T) {
 	root, _ := url.Parse("http://google.com")
-	task := crawler.Task{URL: root}
+	task := crawler.Task{URL: root, Tries: 1}
 	body := []byte("body")
 	children := map[string]int{"google.com/1": 1}
 	result := crawler.TaskResult{Task: task, Children: children}
@@ -67,7 +67,7 @@ func TestWorker_ok(t *testing.T) {
 	w.backend.EXPECT().Do(root).Times(1).Return(body, nil)
 
 	// send the task to the worker
-	w.tasks <- task
+	w.tasks <- crawler.Task{URL: root}
 
 	// assert response
 	select {
@@ -81,7 +81,7 @@ func TestWorker_ok(t *testing.T) {
 
 func TestWorker_process(t *testing.T) {
 	root, _ := url.Parse("http://google.com")
-	task := crawler.Task{URL: root}
+	task := crawler.Task{URL: root, Tries: 1}
 	body := []byte("body")
 	children := map[string]int{"google.com/1": 1}
 	result := crawler.TaskResult{Task: task, Children: children}
@@ -117,7 +117,7 @@ func TestWorker_process(t *testing.T) {
 	w.backend.EXPECT().Do(root).Times(1).Return(body, nil)
 
 	// send the task to the worker
-	w.tasks <- task
+	w.tasks <- crawler.Task{URL: root}
 
 	// assert response
 	select {
@@ -133,7 +133,7 @@ func TestWorker_process(t *testing.T) {
 
 func TestWorker_ignore(t *testing.T) {
 	root, _ := url.Parse("http://google.com")
-	task := crawler.Task{URL: root}
+	task := crawler.Task{URL: root, Tries: 1}
 	result := crawler.TaskResult{Task: task, Children: nil}
 
 	// mock scraper
@@ -157,7 +157,7 @@ func TestWorker_ignore(t *testing.T) {
 	defer w.Stop()
 
 	// send the task to the worker
-	w.tasks <- task
+	w.tasks <- crawler.Task{URL: root}
 
 	// assert response
 	select {
@@ -172,7 +172,7 @@ func TestWorker_ignore(t *testing.T) {
 
 func TestWorker_error(t *testing.T) {
 	root, _ := url.Parse("http://google.com")
-	task := crawler.Task{URL: root}
+	task := crawler.Task{URL: root, Tries: 1}
 	err := errors.New("failed to process")
 	result := crawler.TaskResult{Task: task, Children: nil, Error: &err}
 
@@ -192,7 +192,7 @@ func TestWorker_error(t *testing.T) {
 	w.backend.EXPECT().Do(root).Times(1).Return(nil, err)
 
 	// send the task to the worker
-	w.tasks <- task
+	w.tasks <- crawler.Task{URL: root}
 
 	// assert response
 	select {
