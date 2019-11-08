@@ -13,7 +13,7 @@ const (
 	attrHref = "href"
 )
 
-// ScrapePage returns all the links in a html page
+// ScrapePage returns all the links in a html page and the number of hits for each link
 func ScrapePage(root *url.URL, page []byte) map[string]int {
 	// load the HTML document
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(page))

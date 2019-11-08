@@ -1,12 +1,12 @@
-package http_test
+package backend_test
 
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
-	"time"
 
-	httpClient "github.com/pmdcosta/crawler/internal/http"
+	"github.com/pmdcosta/crawler/internal/backend"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
@@ -20,14 +20,11 @@ func TestBackend(t *testing.T) {
 
 	// build backend
 	logger := zerolog.Nop()
-	backend := httpClient.New(&logger, 10*time.Second)
-
-	// build http request
-	req, err := http.NewRequest(http.MethodGet, testServer.URL, nil)
-	require.Nil(t, err)
+	client := backend.New(&logger)
 
 	// execute http request
-	reader, err := backend.Do(req, 10*1024*1024)
+	u, _ := url.Parse(testServer.URL)
+	reader, err := client.Do(u)
 	require.Nil(t, err)
 
 	// read response
