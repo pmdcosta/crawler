@@ -27,3 +27,6 @@ Usage of ./crawler:
   -retries=3: set retry attempts
   -same-host=true: only crawl the same host
 ```
+
+## Improvments
+- The current implementation can lead to a deadlock when the task channels are full. Need to take a look at this.
